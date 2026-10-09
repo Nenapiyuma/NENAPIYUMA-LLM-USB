@@ -7,8 +7,8 @@
 1. මේ repository එකේ **Actions** tab එක විවෘත කරන්න: https://github.com/Nenapiyuma/NENAPIYUMA-LLM-USB/actions
 2. **Build Complete NENAPIYUMA USB Bundle** workflow එක තෝරන්න.
 3. **Run workflow** ඔබා profile එක තෝරන්න:
-   - `RAM4GB` — කුඩා model එක; අඩු RAM PC සඳහා වඩා සුදුසුයි.
-   - `RAM8GB` — විශාල model එක; වැඩි memory අවශ්‍යයි.
+   - `RAM4GB` — Qwen2.5 1.5B; අඩු RAM PC සඳහා සැහැල්ලු විකල්පය.
+   - `RAM8GB` — Qwen2.5 3B; සිංහල/code සඳහා වඩා හොඳ විකල්පය (8GB+ PC RAM නිර්දේශිතයි).
 4. Workflow එක සාර්ථකව අවසන් වූ පසු එම run එකේ **Artifacts** කොටසෙන් `NENAPIYUMA-USB-Bundle-RAM4GB` හෝ `NENAPIYUMA-USB-Bundle-RAM8GB` download කරන්න.
 5. Artifact ZIP එක extract කර, ඇතුළත ඇති `NENAPIYUMA-LLM-USB` folder එක USB drive එකට copy කරන්න.
 6. USB එකේ `START_NENAPIYUMA.bat` හෝ `NENAPIYUMA.exe` open කරන්න. App එකේ **Start AI** ඔබන්න.
@@ -28,8 +28,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Check-OfflineBundle.ps1
 
 ## RAM profiles
 
-- **RAM4GB:** Qwen2.5 0.5B Instruct, Q4_K_M GGUF. කුඩා හා සීමිත හැකියාවක් ඇති model එකක්.
-- **RAM8GB:** Qwen2.5 1.5B Instruct, Q4_K_M GGUF. වැඩි memory අවශ්‍යයි.
+- **RAM4GB:** Qwen2.5 1.5B Instruct, Q4_K_M GGUF. 4GB RAM PC එකක අනෙකුත් apps වසා දමා පරීක්ෂා කරන්න.
+- **RAM8GB:** Qwen2.5 3B Instruct, Q4_K_M GGUF (model එක ආසන්න වශයෙන් 1.93 GB). සිංහල පිළිතුරු සහ code ලිවීම සඳහා වඩා සුදුසුයි; 8GB+ RAM නිර්දේශිතයි.
 - Model එකේ ගුණාත්මකභාවය, වේගය සහ run වීම available RAM, CPU, context size සහ Windows background usage මත රඳා පවතී. 4GB PC එකක විශාල model බලෙන් ධාවනය නොකරන්න.
 
 ## Offline/privacy
@@ -38,6 +38,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Check-OfflineBundle.ps1
 - App එක cloud API, sign-in හෝ telemetry භාවිතා කිරීමට සැලසුම් කර නැත.
 - Preparation/build සඳහා internet අවශ්‍යයි; bundle එක සකස් වූ පසු chat කිරීම offline විය යුතුය.
 - Chat history `data\chats.json` තුළ USB drive එකේ save වේ.
+- “news”, “අද පුවත්”, “ප්‍රවෘත්ති” වැනි ප්‍රශ්නවලදී internet තිබේ නම් BBC World, Al Jazeera සහ Google News RSS feeds වලින් headlines ලබාගෙන local model එකෙන් සිංහල සාරාංශයක් සකස් කරයි. Internet නැත්නම් අද ප්‍රවෘත්ති අනුමාන නොකර සම්බන්ධතාව අවශ්‍ය බව දන්වයි.
 - USB එක ඉවත් කිරීමට පෙර app එක close කර, Windows eject භාවිතා කරන්න.
 
 ## Third-party files / license
