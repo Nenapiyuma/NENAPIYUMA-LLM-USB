@@ -40,8 +40,8 @@ Copy-Item (Join-Path $binDir "*") $Tools -Recurse -Force
 Write-Host "Runtime copied to tools\"
 
 if ($Profile -eq "RAM4GB") {
-  $repo = "bartowski/Qwen2.5-0.5B-Instruct-GGUF"
-  $filename = "Qwen2.5-0.5B-Instruct-Q4_K_M.gguf"
+  $repo = "bartowski/Qwen2.5-3B-Instruct-GGUF"
+  $filename = "Qwen2.5-3B-Instruct-Q4_K_M.gguf"
 } else {
   $repo = "bartowski/Qwen2.5-1.5B-Instruct-GGUF"
   $filename = "Qwen2.5-1.5B-Instruct-Q4_K_M.gguf"
