@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+data/chats.json
+models/*.gguf
+tools/*.exe
+tools/*.dll
