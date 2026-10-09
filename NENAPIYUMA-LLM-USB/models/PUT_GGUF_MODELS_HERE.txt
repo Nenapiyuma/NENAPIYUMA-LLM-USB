@@ -1,0 +1,1 @@
+Place licensed .gguf model files here. Use scripts/Prepare-OfflineBundle.ps1 to prepare one model while online.
