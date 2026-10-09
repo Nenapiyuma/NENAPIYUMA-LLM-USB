@@ -2,6 +2,7 @@ import json
 import os
 import platform
 import subprocess
+import sys
 import threading
 import time
 import urllib.request
@@ -10,7 +11,7 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent.parent
 MODELS = ROOT / "models"
 TOOLS = ROOT / "tools"
 DATA = ROOT / "data"
