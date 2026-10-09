@@ -1,0 +1,89 @@
+name: Build Complete NENAPIYUMA USB Bundle
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "AI model profile (RAM4GB is smaller; RAM8GB needs more memory)"
+        required: true
+        type: choice
+        options:
+          - RAM4GB
+          - RAM8GB
+        default: RAM4GB
+
+permissions:
+  contents: read
+
+jobs:
+  build-usb-bundle:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout project
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependency
+        run: python -m pip install --upgrade pip pyinstaller
+
+      - name: Validate source syntax
+        working-directory: NENAPIYUMA-LLM-USB
+        run: python -m py_compile app/main.py
+
+      - name: Download model and llama.cpp runtime
+        shell: pwsh
+        working-directory: NENAPIYUMA-LLM-USB
+        run: |
+          ./scripts/Prepare-OfflineBundle.ps1 -Profile "${{ inputs.profile }}"
+          ./scripts/Check-OfflineBundle.ps1
+
+      - name: Build standalone Windows EXE
+        working-directory: NENAPIYUMA-LLM-USB
+        run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name NENAPIYUMA --distpath dist app/main.py
+
+      - name: Assemble and validate USB folder
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $source = Join-Path $PWD "NENAPIYUMA-LLM-USB"
+          $stage = Join-Path $PWD "release/NENAPIYUMA-LLM-USB"
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          Copy-Item (Join-Path $source "dist/NENAPIYUMA.exe") $stage
+          Copy-Item (Join-Path $source "START_NENAPIYUMA.bat") $stage
+          Copy-Item (Join-Path $source "README_SI.md") $stage
+          Copy-Item (Join-Path $source "LICENSE.txt") $stage
+          Copy-Item (Join-Path $source "PROJECT_INFO.json") $stage
+          Copy-Item (Join-Path $source "models") $stage -Recurse
+          Copy-Item (Join-Path $source "tools") $stage -Recurse
+          New-Item -ItemType Directory -Force -Path (Join-Path $stage "data") | Out-Null
+          if (-not (Test-Path (Join-Path $stage "NENAPIYUMA.exe"))) { throw "EXE missing from USB folder" }
+          if ((Get-Item (Join-Path $stage "NENAPIYUMA.exe")).Length -le 0) { throw "EXE is empty" }
+          if (-not (Test-Path (Join-Path $stage "tools/llama-server.exe"))) { throw "llama-server.exe missing" }
+          $models = @(Get-ChildItem (Join-Path $stage "models") -Filter "*.gguf")
+          if ($models.Count -lt 1) { throw "No GGUF model in USB folder" }
+          foreach ($m in $models) {
+            if ($m.Length -lt 10000000) { throw "Model file appears incomplete: $($m.Name)" }
+            Write-Host "Model verified: $($m.Name), $($m.Length) bytes"
+          }
+          $manifest = @(
+            "NENAPIYUMA LLM USB Offline Edition",
+            "Built: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss UTC')",
+            "Profile: ${{ inputs.profile }}",
+            "Windows 10/11 x64. Keep all files together on the USB drive.",
+            "Launch with START_NENAPIYUMA.bat or NENAPIYUMA.exe."
+          )
+          $manifest | Set-Content -Encoding utf8 (Join-Path $stage "BUILD_INFO.txt")
+          Write-Host "USB folder validated: $stage"
+
+      - name: Upload complete USB bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: NENAPIYUMA-USB-Bundle-${{ inputs.profile }}
+          path: release/NENAPIYUMA-LLM-USB/
+          if-no-files-found: error
+          retention-days: 14
