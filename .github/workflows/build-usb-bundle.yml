@@ -47,13 +47,19 @@ jobs:
       - name: Download model and llama.cpp runtime
         shell: pwsh
         working-directory: NENAPIYUMA-LLM-USB
-        run: |
-          ./scripts/Prepare-OfflineBundle.ps1 -Profile "${{ inputs.profile || 'RAM4GB' }}"
-          ./scripts/Check-OfflineBundle.ps1
+        run: ./scripts/Prepare-OfflineBundle.ps1 -Profile "${{ inputs.profile || 'RAM4GB' }}"
 
       - name: Build standalone Windows EXE
         working-directory: NENAPIYUMA-LLM-USB
         run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name NENAPIYUMA --distpath dist app/main.py
+
+      - name: Validate prepared offline bundle
+        shell: pwsh
+        working-directory: NENAPIYUMA-LLM-USB
+        run: |
+          $ErrorActionPreference = "Stop"
+          Copy-Item "dist/NENAPIYUMA.exe" "NENAPIYUMA.exe" -Force
+          ./scripts/Check-OfflineBundle.ps1
 
       - name: Assemble and validate USB folder
         shell: pwsh
@@ -62,7 +68,7 @@ jobs:
           $source = Join-Path $PWD "NENAPIYUMA-LLM-USB"
           $stage = Join-Path $PWD "release/NENAPIYUMA-LLM-USB"
           New-Item -ItemType Directory -Force -Path $stage | Out-Null
-          Copy-Item (Join-Path $source "dist/NENAPIYUMA.exe") $stage
+          Copy-Item (Join-Path $source "NENAPIYUMA.exe") $stage
           Copy-Item (Join-Path $source "START_NENAPIYUMA.bat") $stage
           Copy-Item (Join-Path $source "README_SI.md") $stage
           Copy-Item (Join-Path $source "LICENSE.txt") $stage
