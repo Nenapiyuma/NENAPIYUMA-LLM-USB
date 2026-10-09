@@ -5,10 +5,11 @@
   "runtime": "llama.cpp llama-server",
   "app": "Tkinter source with standalone PyInstaller EXE build",
   "model_profiles": {
-    "RAM4GB": "Qwen2.5-0.5B-Instruct Q4_K_M GGUF",
-    "RAM8GB": "Qwen2.5-1.5B-Instruct Q4_K_M GGUF"
+    "RAM4GB": "Qwen2.5-1.5B-Instruct Q4_K_M GGUF",
+    "RAM8GB": "Qwen2.5-3B-Instruct Q4_K_M GGUF"
   },
   "offline_after_preparation": true,
+  "optional_online_news": "BBC World, Al Jazeera and Google News RSS; requires internet only for news lookups",
   "model_and_runtime_committed_to_source_repository": false,
   "complete_bundle_workflow": ".github/workflows/build-usb-bundle.yml"
 }
