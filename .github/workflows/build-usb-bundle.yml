@@ -11,6 +11,15 @@ on:
           - RAM4GB
           - RAM8GB
         default: RAM4GB
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/build-usb-bundle.yml"
+      - "NENAPIYUMA-LLM-USB/app/**"
+      - "NENAPIYUMA-LLM-USB/scripts/**"
+      - "NENAPIYUMA-LLM-USB/START_NENAPIYUMA.bat"
+      - "NENAPIYUMA-LLM-USB/README_SI.md"
+      - "NENAPIYUMA-LLM-USB/PROJECT_INFO.json"
 
 permissions:
   contents: read
@@ -39,7 +48,7 @@ jobs:
         shell: pwsh
         working-directory: NENAPIYUMA-LLM-USB
         run: |
-          ./scripts/Prepare-OfflineBundle.ps1 -Profile "${{ inputs.profile }}"
+          ./scripts/Prepare-OfflineBundle.ps1 -Profile "${{ inputs.profile || 'RAM4GB' }}"
           ./scripts/Check-OfflineBundle.ps1
 
       - name: Build standalone Windows EXE
@@ -73,7 +82,7 @@ jobs:
           $manifest = @(
             "NENAPIYUMA LLM USB Offline Edition",
             "Built: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss UTC')",
-            "Profile: ${{ inputs.profile }}",
+            "Profile: ${{ inputs.profile || 'RAM4GB' }}",
             "Windows 10/11 x64. Keep all files together on the USB drive.",
             "Launch with START_NENAPIYUMA.bat or NENAPIYUMA.exe."
           )
@@ -83,7 +92,7 @@ jobs:
       - name: Upload complete USB bundle
         uses: actions/upload-artifact@v4
         with:
-          name: NENAPIYUMA-USB-Bundle-${{ inputs.profile }}
+          name: NENAPIYUMA-USB-Bundle-${{ inputs.profile || 'RAM4GB' }}
           path: release/NENAPIYUMA-LLM-USB/
           if-no-files-found: error
           retention-days: 14
