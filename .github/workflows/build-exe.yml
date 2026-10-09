@@ -1,0 +1,54 @@
+name: Build NENAPIYUMA Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "NENAPIYUMA-LLM-USB/app/**"
+      - "NENAPIYUMA-LLM-USB/.github/workflows/build-exe.yml"
+      - ".github/workflows/build-exe.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: NENAPIYUMA-LLM-USB
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install build dependency
+        run: python -m pip install --upgrade pip pyinstaller
+
+      - name: Check Python syntax
+        run: python -m py_compile app/main.py
+
+      - name: Build standalone EXE
+        run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name NENAPIYUMA --distpath dist app/main.py
+
+      - name: Verify EXE exists and is not empty
+        shell: pwsh
+        run: |
+          $exe = Join-Path $PWD "dist/NENAPIYUMA.exe"
+          if (-not (Test-Path $exe)) { throw "EXE was not created: $exe" }
+          if ((Get-Item $exe).Length -le 0) { throw "EXE is empty: $exe" }
+          Write-Host "Verified $exe ($((Get-Item $exe).Length) bytes)"
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NENAPIYUMA-Windows-EXE
+          path: NENAPIYUMA-LLM-USB/dist/NENAPIYUMA.exe
+          if-no-files-found: error
+          retention-days: 14
