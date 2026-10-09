@@ -1,13 +1,14 @@
 {
   "name": "NENAPIYUMA LLM USB Offline Edition",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "platform": "Windows 10/11 x64",
   "runtime": "llama.cpp llama-server",
+  "app": "Tkinter source with standalone PyInstaller EXE build",
   "model_profiles": {
     "RAM4GB": "Qwen2.5-0.5B-Instruct Q4_K_M GGUF",
     "RAM8GB": "Qwen2.5-1.5B-Instruct Q4_K_M GGUF"
   },
   "offline_after_preparation": true,
-  "included_model_binary": false,
-  "included_runtime_binary": false
+  "model_and_runtime_committed_to_source_repository": false,
+  "complete_bundle_workflow": ".github/workflows/build-usb-bundle.yml"
 }
