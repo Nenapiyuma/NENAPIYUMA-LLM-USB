@@ -124,6 +124,15 @@ class NenapiyumaApp:
         self.build_ui()
         self.refresh_models()
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+        # Auto-connect to the first bundled GGUF model when the USB app opens.
+        # No model picker or manual Start AI click is needed for normal use.
+        if self.model_path and (TOOLS / "llama-server.exe").exists():
+            self.set_status("Bundled AI model හඳුනාගත්තා — ස්වයංක්‍රීයව ආරම්භ කරනවා...")
+            self.root.after(900, self.start_ai)
+        elif not self.model_path:
+            self.set_status("AI model එක හමු වුණේ නැහැ. Complete USB Bundle එක ලබාගන්න.")
+        else:
+            self.set_status("AI runtime එක හමු වුණේ නැහැ. Complete USB Bundle එක නැවත ලබාගන්න.")
 
     def build_ui(self):
         style = ttk.Style()
