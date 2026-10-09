@@ -10,7 +10,7 @@ on:
         options:
           - RAM4GB
           - RAM8GB
-        default: RAM4GB
+        default: RAM8GB
   push:
     branches: [main]
     paths:
@@ -47,7 +47,7 @@ jobs:
       - name: Download model and llama.cpp runtime
         shell: pwsh
         working-directory: NENAPIYUMA-LLM-USB
-        run: ./scripts/Prepare-OfflineBundle.ps1 -Profile "${{ inputs.profile || 'RAM4GB' }}"
+        run: ./scripts/Prepare-OfflineBundle.ps1 -Profile "${{ inputs.profile || 'RAM8GB' }}"
 
       - name: Build standalone Windows EXE
         working-directory: NENAPIYUMA-LLM-USB
