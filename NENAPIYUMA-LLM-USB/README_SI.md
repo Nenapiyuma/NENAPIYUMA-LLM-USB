@@ -62,3 +62,7 @@ Qwen GGUF model files සහ llama.cpp runtime වෙනත් ව්‍යා�
 - `models\` — GGUF model file(s)
 - `tools\` — llama.cpp runtime සහ එයට අවශ්‍ය files
 - `data\` — local chat history
+
+## අලුත් EXE/USB bundle එක ලබාගැනීම
+
+GitHub repository එකේ **Actions → Build Complete NENAPIYUMA USB Bundle → Run workflow** තෝරන්න. 8 GB හෝ ඊට වැඩි RAM ඇති PC සඳහා `RAM8GB` තෝරන්න; අඩු RAM සඳහා `RAM4GB` තෝරන්න. Build සාර්ථක වූ පසු workflow run එකේ **Artifacts** යටතේ `NENAPIYUMA-USB-Bundle-...` download කර ZIP එක extract කර USB drive එකට copy කරන්න. `START_NENAPIYUMA.bat` හෝ `NENAPIYUMA.exe` ධාවනය කරන්න. Build artifact එක තුළ EXE එක පමණක් නොව model සහ llama.cpp runtime ද තිබිය යුතුය.
