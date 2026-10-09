@@ -38,6 +38,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\Check-OfflineBundle.ps1
 - App එක cloud API, sign-in හෝ telemetry භාවිතා කිරීමට සැලසුම් කර නැත.
 - Preparation/build සඳහා internet අවශ්‍යයි; bundle එක සකස් වූ පසු chat කිරීම offline විය යුතුය.
 - Chat history `data\chats.json` තුළ USB drive එකේ save වේ.
+- “news”, “අද පුවත්”, “ප්‍රවෘත්ති” වැනි ප්‍රශ්නවලදී internet තිබේ නම් BBC World, Al Jazeera සහ Google News RSS feeds වලින් headlines ලබාගෙන local model එකෙන් සිංහල සාරාංශයක් සකස් කරයි. Internet නැත්නම් අද ප්‍රවෘත්ති අනුමාන නොකර සම්බන්ධතාව අවශ්‍ය බව දන්වයි.
 - USB එක ඉවත් කිරීමට පෙර app එක close කර, Windows eject භාවිතා කරන්න.
 
 ## Third-party files / license
