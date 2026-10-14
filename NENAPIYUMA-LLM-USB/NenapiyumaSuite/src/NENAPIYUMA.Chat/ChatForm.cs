@@ -20,6 +20,7 @@ internal sealed class ChatForm : Form
     private readonly Label _modelLabel = new();
     private readonly Button _send = new();
     private readonly Button _stop = new();
+    private readonly CheckBox _automation = new();
     private bool _working;
     private CancellationTokenSource? _generation;
 
@@ -109,6 +110,23 @@ internal sealed class ChatForm : Form
         clearButton.Click += (_, _) => ClearHistory();
         clearButton.Name = "clearChatButton";
         toolbar.Controls.Add(clearButton);
+
+        var imageButton = MakeButton("Generate image", false);
+        imageButton.Click += async (_, _) => await FeatureTools.GenerateImageAsync(this, _settings, SetStatus);
+        toolbar.Controls.Add(imageButton);
+        var audioButton = MakeButton("Generate audio", false);
+        audioButton.Click += async (_, _) => await FeatureTools.GenerateAudioAsync(this, SetStatus);
+        toolbar.Controls.Add(audioButton);
+        _automation.Text = "PC control OFF";
+        _automation.AutoSize = true;
+        _automation.Checked = false;
+        _automation.ForeColor = Color.FromArgb(230, 230, 240);
+        _automation.Margin = new Padding(6, 8, 6, 0);
+        _automation.CheckedChanged += (_, _) => _automation.Text = _automation.Checked ? "PC control ON" : "PC control OFF";
+        toolbar.Controls.Add(_automation);
+        var pcButton = MakeButton("Control PC…", false);
+        pcButton.Click += (_, _) => FeatureTools.ShowComputerControl(this, _automation.Checked, LogAction, SetStatus);
+        toolbar.Controls.Add(pcButton);
         layout.Controls.Add(toolbar, 0, 1);
 
         _transcript.Dock = DockStyle.Fill;
@@ -201,13 +219,31 @@ internal sealed class ChatForm : Form
         UpdateButtons();
         try
         {
-            if (!await EnsureModelAsync(showError: true))
-                return;
-
+            var route = TaskRouter.Route(text);
             _input.Clear();
             _history.Add(new ChatMessage("user", text, DateTimeOffset.Now));
             SaveHistory();
             RenderMessages(_history);
+
+            if (route.Kind == TaskKind.ImageGeneration)
+            {
+                await FeatureTools.GenerateImageAsync(this, _settings, SetStatus, text);
+                return;
+            }
+            if (route.Kind == TaskKind.AudioGeneration)
+            {
+                await FeatureTools.GenerateAudioAsync(this, SetStatus, text);
+                return;
+            }
+            if (route.Kind == TaskKind.ComputerControl)
+            {
+                FeatureTools.HandleControlRequest(this, text, _automation.Checked, LogAction, SetStatus);
+                return;
+            }
+
+            if (!await EnsureModelAsync(showError: true))
+                return;
+
             _generation = new CancellationTokenSource();
             SetStatus("Thinking…");
             var answer = await _server.CompleteAsync(_history, SystemInstruction, 1000, 0.7, _generation.Token);
@@ -326,6 +362,18 @@ internal sealed class ChatForm : Form
     {
         try { _store.Save(_history); }
         catch (Exception ex) { SetStatus("Could not save chat history: " + ex.Message); }
+    }
+
+    private void LogAction(string result, string detail)
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.Combine(_appDirectory, "data"));
+            File.AppendAllText(Path.Combine(_appDirectory, "data", "action-log.txt"),
+                $"{DateTimeOffset.Now:O}\t{result}\t{detail}{Environment.NewLine}");
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
     }
 
     private void RenderMessages(IEnumerable<ChatMessage> messages)

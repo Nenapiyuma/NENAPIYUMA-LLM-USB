@@ -23,6 +23,9 @@ var routeCases = new[]
     ("Write a Python program to add two numbers", TaskKind.Coding),
     ("Generate an image of a mountain", TaskKind.ImageGeneration),
     ("Generate background music", TaskKind.AudioGeneration),
+    ("පින්තූර හදන්න", TaskKind.ImageGeneration),
+    ("ඔඩියෝ හදන්න", TaskKind.AudioGeneration),
+    ("Open Paint", TaskKind.ComputerControl),
     ("Open Notepad", TaskKind.ComputerControl)
 };
 foreach (var (input, expected) in routeCases)
@@ -35,6 +38,9 @@ Check(SafeCommandPolicy.TryGetLaunchTarget("Open Calculator", out var calculator
 Check(!SafeCommandPolicy.TryGetLaunchTarget("Open PowerShell and run a command", out _),
     "arbitrary shell is blocked");
 Check(!SafeCommandPolicy.IsAllowedExecutable("cmd.exe"), "cmd.exe is not allow-listed");
+Check(WindowsAppController.Find("paint") is { LaunchTarget: "mspaint.exe" }, "Paint is allow-listed");
+Check(WindowsAppController.Find("edge") is { CanClose: false }, "Edge is launch-only");
+Check(WindowsAppController.Find("explorer") is { CanClose: false }, "File Explorer cannot be closed by this tool");
 
 using (var cancelledClient = new LlamaServerClient())
 using (var cancelledSource = new CancellationTokenSource())
@@ -87,6 +93,13 @@ try
     File.WriteAllText(Path.Combine(tools, "llama-server.exe"), "test runtime marker");
     var discovered = ModelLocator.Discover(temp, "models", "tools");
     Check(discovered.HasModel && discovered.HasRuntime && discovered.CanRun, "model/runtime paths are discovered automatically");
+
+    var wavPath = Path.Combine(temp, "test-audio.wav");
+    await AudioGenerationService.GenerateWavAsync("calm ambient music 72 BPM", wavPath, 5);
+    var wavHeader = File.ReadAllBytes(wavPath).Take(12).ToArray();
+    Check(wavHeader.Length == 12 && System.Text.Encoding.ASCII.GetString(wavHeader, 0, 4) == "RIFF"
+        && System.Text.Encoding.ASCII.GetString(wavHeader, 8, 4) == "WAVE",
+        "offline audio generator creates a valid WAV container");
 
     var historyPath = Path.Combine(temp, "data", "chats.json");
     var store = new ConversationStore(historyPath);

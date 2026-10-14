@@ -102,9 +102,10 @@ internal sealed class StudioForm : Form
         _mode.Margin = new Padding(4, 3, 8, 3);
         toolbar.Controls.Add(_mode);
 
-        _automation.Text = "Enable computer control (off by default)";
+        _automation.Text = "Computer control OFF";
         _automation.AutoSize = true;
         _automation.Checked = false;
+        _automation.CheckedChanged += (_, _) => _automation.Text = _automation.Checked ? "Computer control ON" : "Computer control OFF";
         _automation.ForeColor = Color.FromArgb(230, 230, 240);
         _automation.Margin = new Padding(6, 8, 6, 0);
         toolbar.Controls.Add(_automation);

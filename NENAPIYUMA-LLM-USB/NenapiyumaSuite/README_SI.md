@@ -44,13 +44,35 @@ Script එක dependencies restore කර, core self-tests run කර, apps ද�
 - config/appsettings.json මඟින් ModelDirectory, RuntimeDirectory, ports (8080, 8081) සහ context size වෙනස් කළ හැක.
 - Current news lookup එක නව native apps වලට සම්බන්ධ කර නැත. Offline model එකෙන් real-time news දන්නා බවට app එක පොරොන්දු නොවේ.
 
+## පින්තූර සෑදීම
+
+1. Windows PC එකේ local **ComfyUI** install/run කරන්න: https://github.com/comfyanonymous/ComfyUI
+2. ComfyUI හි compatible image checkpoint එකක් \`ComfyUI/models/checkpoints/\` තුළ තබා ComfyUI restart/reload කරන්න.
+3. ComfyUI default local address \`http://127.0.0.1:8188\` මත ක්‍රියාත්මක විය යුතුයි. වෙනස් port එකක් භාවිතා කරන්නේ නම් app එකේ \`config/appsettings.json\` හි \`ImageGenerationEndpoint\` වෙනස් කරන්න.
+4. NENAPIYUMA Chat හෝ Studio AI හි **Generate image** ඔබන්න, prompt එක ලියන්න, PNG output path එක තෝරන්න. ComfyUI API හරහා image එක generate කර output file එක save කරයි.
+
+Image model සහ ComfyUI runtime එක default EXE artifact එකට ඇතුළත් නැත; ඒවා වෙනම install කළ යුතුයි. Image generation එකේ RAM/VRAM අවශ්‍යතාව checkpoint එක මත රඳා පවතී. Model files වල license එක පරීක්ෂා කරන්න. App එක local loopback endpoint එකකට පමණක් සම්බන්ධ වේ.
+
+## Offline audio generation
+
+- **Generate audio** මඟින් 5–60 seconds WAV file එකක් සෑදිය හැක.
+- මෙම build එකේ audio generator එක offline procedural synthesizer එකකි. එය සත්‍ය WAV audio output එකක් සෑදුවත්, neural AI text-to-audio/music model එකක් නොවේ. Prompt එකෙන් tempo/mood වැනි සරල ලක්ෂණ පමණක් තෝරාගනී.
+- Neural AI music, realistic speech, voice cloning හෝ text-to-speech සඳහා වෙනම compatible local audio model/runtime එකක් තවම සම්බන්ධ කර නැත.
+
+## Permission-gated Windows PC control
+
+- Chat සහ Studio දෙකේම **PC control** default ලෙස OFF.
+- ON කළ පසුවත් සෑම action එකකටම වෙනම confirmation dialog එකක් ලැබේ.
+- Allow-list: Notepad, Calculator, Paint, Microsoft Edge සහ File Explorer launch කිරීම.
+- Notepad, Calculator සහ Paint සඳහා පමණක් graceful close request ලබාදෙයි. Windows save prompt එකක් පෙන්විය හැක; app එක force-kill කරන්නේ නැත. Edge/File Explorer close කිරීම අවහිර කර ඇත.
+- Arbitrary PowerShell/CMD commands, installs, file deletion, privilege escalation හෝ hidden background actions ක්‍රියාත්මක නොකරයි. ක්‍රියා audit log එක \`data/action-log.txt\` (Chat) හෝ \`%LOCALAPPDATA%/NENAPIYUMA/Studio/data/action-log.txt\` (Studio) තුළ සටහන් කරයි.
+
 ## Studio AI හි ක්‍රියාත්මක තත්ත්වය
 
 - Chat/coding: local GGUF model සහ llama-server.exe හඳුනාගෙන API-compatible runtime එක start වූ විට ක්‍රියා කරයි.
 - Thinking mode: වැඩි response budget එකක් සහ deliberate answer prompt එකක් යොදයි; model එකේ නොමැති hidden reasoning feature එකක් සක්‍රිය කරන බව නොකියයි.
 - Spike mode: කෙටි response budget/වේගවත් උත්තර සඳහා සකසා ඇත.
-- Windows control: default ලෙස OFF. සක්‍රිය කළ පසුවත් allow-list එකේ ඇති Notepad/Calculator launch කිරීම පමණක් confirmation එකෙන් කළ හැක. Arbitrary shell commands, installs, deletion, UAC bypass, private credential access මෙහි implemented නොවේ.
-- Image generation සහ audio generation: මේ build එකේ local generation modules සම්බන්ධ කර නැත. UI එක missing capability කියා දන්වයි; fake image/audio file එකක් සාදන බව නොකියයි. Text-to-speech සහ music generation එකම capability නොවේ.
+- Windows control: ඉහත allow-list සහ per-action confirmation අනුව පමණක් ක්‍රියා කරයි.
 
 ## Troubleshooting
 

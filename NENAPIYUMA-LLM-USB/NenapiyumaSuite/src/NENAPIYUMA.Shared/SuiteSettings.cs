@@ -10,6 +10,7 @@ public sealed class SuiteSettings
     public int StudioPort { get; set; } = 8081;
     public int ContextSize { get; set; } = 4096;
     public bool AllowComputerAutomation { get; set; } = false;
+    public string ImageGenerationEndpoint { get; set; } = "http://127.0.0.1:8188";
 
     public static SuiteSettings Load(string appDirectory)
     {
@@ -28,6 +29,9 @@ public sealed class SuiteSettings
             if (settings.ContextSize is < 512 or > 32768) settings.ContextSize = 4096;
             settings.ModelDirectory = string.IsNullOrWhiteSpace(settings.ModelDirectory) ? "models" : settings.ModelDirectory;
             settings.RuntimeDirectory = string.IsNullOrWhiteSpace(settings.RuntimeDirectory) ? "tools" : settings.RuntimeDirectory;
+            settings.ImageGenerationEndpoint = string.IsNullOrWhiteSpace(settings.ImageGenerationEndpoint)
+                ? "http://127.0.0.1:8188"
+                : settings.ImageGenerationEndpoint.TrimEnd('/');
             return settings;
         }
         catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
