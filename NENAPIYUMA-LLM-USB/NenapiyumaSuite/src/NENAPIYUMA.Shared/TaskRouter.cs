@@ -24,3 +24,37 @@ public static class TaskRouter
     private static bool ContainsAny(string text, params string[] terms) =>
         terms.Any(term => text.Contains(term, StringComparison.OrdinalIgnoreCase));
 }
+
+public static class SafeCommandPolicy
+{
+    public static bool TryGetLaunchTarget(string request, out string executable)
+    {
+        executable = string.Empty;
+        var text = request.ToLowerInvariant();
+
+        var explicitLaunchIntent = ContainsAny(text, "open ", "open\t", "launch ", "start ", "run ", "විවෘත කරන්න", "අරින්න", "ආරම්භ කරන්න");
+        if (!explicitLaunchIntent)
+            return false;
+
+        if (ContainsAny(text, "notepad", "නෝට්පෑඩ්", "නොට්පෑඩ්"))
+        {
+            executable = "notepad.exe";
+            return true;
+        }
+
+        if (ContainsAny(text, "calculator", "calc", "කැල්කියුලේටරය", "ගණකය"))
+        {
+            executable = "calc.exe";
+            return true;
+        }
+
+        return false;
+    }
+
+    public static bool IsAllowedExecutable(string executable) =>
+        executable.Equals("notepad.exe", StringComparison.OrdinalIgnoreCase) ||
+        executable.Equals("calc.exe", StringComparison.OrdinalIgnoreCase);
+
+    private static bool ContainsAny(string text, params string[] terms) =>
+        terms.Any(term => text.Contains(term, StringComparison.OrdinalIgnoreCase));
+}
