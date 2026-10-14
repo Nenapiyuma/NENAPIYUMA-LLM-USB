@@ -1,0 +1,114 @@
+name: Build NENAPIYUMA Windows AI Suite
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "NENAPIYUMA-LLM-USB/NenapiyumaSuite/**"
+      - ".github/workflows/build-windows-suite.yml"
+  workflow_dispatch:
+    inputs:
+      include_offline_model:
+        description: "Explicitly download and include the GGUF model plus llama.cpp runtime"
+        required: true
+        type: boolean
+        default: false
+      profile:
+        description: "Model profile for the optional offline bundle"
+        required: true
+        type: choice
+        options:
+          - RAM4GB
+          - RAM8GB
+        default: RAM8GB
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows-suite:
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Build both EXEs and run core tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          Set-Location "NENAPIYUMA-LLM-USB/NenapiyumaSuite"
+          ./scripts/build-windows.ps1
+          ./scripts/Check-Build-Output.ps1
+
+      - name: Explicit opt-in — download model/runtime bundle
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.include_offline_model }}
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $legacyRoot = Join-Path $PWD "NENAPIYUMA-LLM-USB"
+          Set-Location $legacyRoot
+          $profile = "${{ inputs.profile }}"
+          ./scripts/Prepare-OfflineBundle.ps1 -Profile $profile
+
+          $releaseRoot = Join-Path $PWD "NenapiyumaSuite/release"
+          $chatRoot = Join-Path $releaseRoot "NENAPIYUMA-Chat"
+          $modelSource = Join-Path $PWD "models"
+          $runtimeSource = Join-Path $PWD "tools"
+
+          if (-not (Test-Path (Join-Path $runtimeSource "llama-server.exe"))) {
+            throw "Optional model bundle was selected, but llama-server.exe was not prepared."
+          }
+          $models = @(Get-ChildItem $modelSource -Filter "*.gguf" -File)
+          if ($models.Count -lt 1) {
+            throw "Optional model bundle was selected, but no GGUF model was prepared."
+          }
+          foreach ($model in $models) {
+            if ($model.Length -lt 10000000) {
+              throw "Prepared model looks incomplete: $($model.Name)"
+            }
+          }
+
+          Copy-Item (Join-Path $modelSource "*") (Join-Path $chatRoot "models") -Recurse -Force
+          Copy-Item (Join-Path $runtimeSource "*") (Join-Path $chatRoot "tools") -Recurse -Force
+
+          $chatBytes = (Get-ChildItem $chatRoot -Recurse -File | Measure-Object -Property Length -Sum).Sum
+          Write-Host ("NENAPIYUMA Chat extracted folder size: {0:N0} bytes ({1:N2} GiB)" -f $chatBytes, ($chatBytes / 1GB))
+          if ($chatBytes -ge 5500000000) {
+            throw "The Chat folder exceeds the conservative 5.5 GB USB budget. Choose the smaller RAM4GB profile or provide a smaller compatible quantized model."
+          }
+          Write-Host "Studio will discover the shared model/runtime in its sibling NENAPIYUMA-Chat folder."
+
+      - name: Validate output and report model packaging
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $releaseRoot = Join-Path $PWD "NENAPIYUMA-LLM-USB/NenapiyumaSuite/release"
+          $chatExe = Join-Path $releaseRoot "NENAPIYUMA-Chat/NENAPIYUMA.Chat.exe"
+          $studioExe = Join-Path $releaseRoot "NENAPIYUMA-Studio/NENAPIYUMA.Studio.exe"
+          foreach ($exe in @($chatExe, $studioExe)) {
+            if (-not (Test-Path $exe -PathType Leaf) -or (Get-Item $exe).Length -le 0) {
+              throw "Missing or empty executable: $exe"
+            }
+            Write-Host "[OK] $exe ($((Get-Item $exe).Length) bytes)"
+          }
+          $modelFiles = @(Get-ChildItem (Join-Path $releaseRoot "NENAPIYUMA-Chat/models") -Filter "*.gguf" -File -ErrorAction SilentlyContinue)
+          if ($modelFiles.Count -gt 0) {
+            Write-Host "GGUF files included:"
+            $modelFiles | ForEach-Object { Write-Host (" - {0}: {1:N0} bytes" -f $_.Name, $_.Length) }
+          } else {
+            Write-Host "App-only build: no model/runtime was downloaded. See README_SI.md for explicit setup."
+          }
+
+      - name: Upload Windows x64 apps
+        uses: actions/upload-artifact@v4
+        with:
+          name: NENAPIYUMA-Windows-x64-Suite
+          path: NENAPIYUMA-LLM-USB/NenapiyumaSuite/release/
+          if-no-files-found: error
+          retention-days: 14

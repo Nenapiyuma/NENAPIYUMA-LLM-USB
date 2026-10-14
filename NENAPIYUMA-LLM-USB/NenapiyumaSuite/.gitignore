@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+release/
+**/models/*.gguf
+**/tools/*.exe
+**/tools/*.dll
+**/data/*.json
+**/data/*.log
+*.user
+*.suo
